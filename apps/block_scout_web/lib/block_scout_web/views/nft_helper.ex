@@ -18,6 +18,9 @@ defmodule BlockScoutWeb.NFTHelper do
         metadata["image"] ->
           retrieve_image(metadata["image"])
 
+        is_binary(metadata["properties"]["image"]) ->
+          metadata["properties"]["image"]
+
         metadata["properties"]["image"]["description"] ->
           metadata["properties"]["image"]["description"]
 
