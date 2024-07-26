@@ -7,6 +7,8 @@ defmodule EthereumJSONRPC.Transaction do
   [`eth_getTransactionByBlockHashAndIndex`](https://github.com/ethereum/wiki/wiki/JSON-RPC/e8e0771b9f3677693649d945956bc60e886ceb2b#eth_gettransactionbyblockhashandindex),
   and [`eth_getTransactionByBlockNumberAndIndex`](https://github.com/ethereum/wiki/wiki/JSON-RPC/e8e0771b9f3677693649d945956bc60e886ceb2b#eth_gettransactionbyblocknumberandindex)
   """
+  require Logger
+
   import EthereumJSONRPC, only: [quantity_to_integer: 1, integer_to_quantity: 1, request: 1]
 
   alias EthereumJSONRPC
@@ -693,7 +695,15 @@ defmodule EthereumJSONRPC.Transaction do
   defp validate_key(acc, _to_key, nil, _opts), do: acc
 
   defp validate_key(acc, to_key, value, %{:validation => :address_hash}) do
-    if address_correct?(value), do: Map.put(acc, to_key, value), else: acc
+    if address_correct?(value) do
+      Map.put(acc, to_key, value)
+    else
+      Logger.warning(
+        "Address hash value #{inspect(value)} validation wasn't passed successfully for the key #{inspect(to_key)}. It wasn't added to changeset for update in the DB."
+      )
+
+      acc
+    end
   end
 
   defp validate_key(acc, to_key, value, _validation), do: Map.put(acc, to_key, value)
