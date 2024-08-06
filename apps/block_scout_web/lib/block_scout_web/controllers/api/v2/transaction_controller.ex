@@ -356,9 +356,15 @@ defmodule BlockScoutWeb.API.V2.TransactionController do
           FirstTraceOnDemand.trigger_fetch(transaction)
         end
 
-        conn
-        |> put_status(200)
-        |> render(:raw_trace, %{internal_transactions: internal_transactions})
+        case Chain.fetch_transaction_raw_traces(transaction) do
+          {:ok, raw_traces} ->
+            conn
+            |> put_status(200)
+            |> render(:raw_trace, %{raw_traces: raw_traces})
+
+          {:error, error} ->
+            {500, error}
+        end
       end
     end
   end

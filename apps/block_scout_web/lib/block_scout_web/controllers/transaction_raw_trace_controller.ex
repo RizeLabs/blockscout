@@ -41,7 +41,10 @@ defmodule BlockScoutWeb.TransactionRawTraceController do
           FirstTraceOnDemand.trigger_fetch(transaction)
         end
 
-        render_raw_trace(conn, internal_transactions, transaction, hash)
+        case Chain.fetch_transaction_raw_traces(transaction) do
+          {:ok, raw_traces} -> render_raw_trace(conn, raw_traces, transaction, hash)
+          _error -> unprocessable_entity(conn)
+        end
       end
     else
       {:restricted_access, _} ->
@@ -55,12 +58,12 @@ defmodule BlockScoutWeb.TransactionRawTraceController do
     end
   end
 
-  defp render_raw_trace(conn, internal_transactions, transaction, hash) do
+  defp render_raw_trace(conn, raw_traces, transaction, hash) do
     render(
       conn,
       "index.html",
       exchange_rate: Market.get_coin_exchange_rate(),
-      internal_transactions: internal_transactions,
+      raw_traces: raw_traces,
       block_height: Chain.block_height(),
       current_user: current_user(conn),
       show_token_transfers: Chain.transaction_has_token_transfers?(hash),
